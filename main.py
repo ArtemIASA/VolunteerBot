@@ -16,7 +16,9 @@ from telegram.ext import (
 
 load_dotenv()
 token = os.getenv("TOKEN")
-webapp_url = ''
+port = os.getenv("PORT")
+webhook_host = os.getenv("HOST_IP")
+webapp_url = f"https://{webhook_host}:{port}/"
 # Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -75,7 +77,8 @@ def main() -> None:
     dispatcher.add_handler(conv_handler)
 
     # Start the Bot
-    updater.start_webhook('0.0.0.0', port=PORT, url_path=token, webhook_url=webapp_url + token)
+    updater.start_webhook('0.0.0.0', port=port, url_path=token, key='url_private.key',
+                      cert='url_cert.pem', webhook_url=webapp_url + token)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
