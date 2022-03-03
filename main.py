@@ -1,6 +1,5 @@
 import logging
 import os
-import pygsheets
 import states
 from request_dispatch import request
 from help_dispatch import *
@@ -17,7 +16,7 @@ from telegram.ext import (
 
 load_dotenv()
 token = os.getenv("TOKEN")
-
+webapp_url = ''
 # Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -26,6 +25,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def start(update: Update, context: CallbackContext) -> int:
+
     """Starts the conversation and asks the user about their gender."""
     reply_keyboard = [['✋ Потрібна допомога']]
 
@@ -63,10 +63,11 @@ def main() -> None:
         entry_points=[CommandHandler('start', start)],
         states={
             states.REQUEST: [MessageHandler(Filters.regex('^(✋ Потрібна допомога)$'), request)],
-            states.HELP: [MessageHandler(Filters.regex('^(Деснянський|Святошинський|Дніпровський|Печерський|Голосіївський|Дарницький|Солом’янський|Оболонський|Шевченківський|Подільський)'), region)],
+            states.REGION: [MessageHandler(Filters.regex('^(Деснянський|Святошинський|Дніпровський|Печерський|Голосіївський|Дарницький|Солом’янський|Оболонський|Шевченківський|Подільський)$'), region)],
+            states.HELP: [MessageHandler(Filters.text, help)],
             states.NAME: [MessageHandler(Filters.text, name)],
             states.PHONE: [MessageHandler(Filters.text, phone)],
-            states.ADDRESS: [MessageHandler(Filters.text, address)]
+            states.ADDRESS: [MessageHandler(Filters.text, address)],
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )
@@ -74,7 +75,7 @@ def main() -> None:
     dispatcher.add_handler(conv_handler)
 
     # Start the Bot
-    updater.start_polling()
+    updater.start_webhook('0.0.0.0', port=PORT, url_path=token, webhook_url=webapp_url + token)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since

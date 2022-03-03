@@ -31,4 +31,4 @@ def request(update: Update, context: CallbackContext) -> int:
         )
     )
 
-    return states.HELP
+    return states.REGION
