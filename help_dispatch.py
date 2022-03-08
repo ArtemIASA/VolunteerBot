@@ -1,6 +1,8 @@
 import logging
 import states
+import os
 import google_sheets
+import re
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
     Updater,
@@ -10,9 +12,30 @@ from telegram.ext import (
     ConversationHandler,
     CallbackContext,
 )
-sheets = google_sheets.Sheets("Sheet1")
-logger = logging.getLogger(__name__)
+from dotenv import load_dotenv
 
+load_dotenv()
+OSA_MED = os.getenv('OSA_MED')
+OSA_GROCERIES = os.getenv('OSA_GROCERIES')
+OSA_ARMY = os.getenv('OSA_ARMY')
+OSA_MEALS = os.getenv('OSA_MEALS')
+OSA_OTHER = os.getenv('OSA_OTHER')
+logger = logging.getLogger(__name__)
+text_to_link = {
+        '🛡 Речі для захисників': OSA_ARMY,
+        '🍲 Обіди': OSA_MEALS,
+        '💊 Ліки / засоби гігієни': OSA_MED,
+        '🛒 Гуманітарна допомога (їжа, речі)': OSA_GROCERIES,
+        '📖 Інше': OSA_OTHER
+    }
+
+def get_table_id(text):
+    try:
+        table_id = text_to_link[text]
+    except KeyError as e:
+        # можно также присвоить значение по умолчанию вместо бросания исключения
+        raise ValueError('Undefined unit: {}'.format(e.args[0]))
+    return table_id
 
 def send_again(update: Update):
     update.message.reply_text(
@@ -36,113 +59,140 @@ def send_to_start(update: Update):
 
 
 def region(update: Update, context: CallbackContext) -> int:
-    """Stores the selected gender and asks for a photo."""
-    # reply_keyboard = [['Мені потрібні автоволонтери'],
-    #                   ['Мені потрібні речі для захисників'],
-    #                   ['Мені потрібні ліки / засоби гігієни'],
-    #                   ['Мені потрібна допомога волонтерів руками'],
-    #                   ['Мені потрібна гуманітарна допомога (їжа, речі)'],
-    #                   ['Мого запиту немає в списку']
-    #                   ]
-    reply_keyboard = [['❌ Відміна']]
+    reply_keyboard = [['🛡 Речі для захисників'],
+                      ['🍲 Обіди'],
+                      ['💊 Ліки / засоби гігієни'],
+                      ['🛒 Гуманітарна допомога (їжа, речі)'],
+                      ['📖 Інше'],
+                      ['❌ Відміна']
+                      ]
     user = update.message.from_user
+    text = update.message.text
+    context.user_data['region'] = text
     logger.info("Gender of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
-        'Напишіть яка '
+        'Оберіть яка '
         'допомога потрібна ⤵️',
          reply_markup=ReplyKeyboardMarkup(
              reply_keyboard, one_time_keyboard=True, resize_keyboard=True
         )
     )
 
-    return states.HELP
+    return states.HELP_TYPE
 
 
-def help(update: Update, context: CallbackContext) -> int:
-    """Stores the selected gender and asks for a photo."""
+def help_type(update: Update, context: CallbackContext) -> int:
     reply_keyboard = [['❌ Відміна']]
     text = update.message.text
     if text == '❌ Відміна':
         send_to_start(update)
         return states.REQUEST
-    sheets.add_help_info(text)
+    context.user_data['table_id'] = get_table_id(text)
+    logger.info("Text is: %s", text)
+    if text == '📖 Інше':
+        update.message.reply_text(
+            'Опишіть докладно яка '
+            'допомога потрібна ⤵️',
+            reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=False, resize_keyboard=True
+            )
+        )
+    elif text == '🍲 Обіди':
+        update.message.reply_text(
+            'Напишіть кількість '
+            'обідів ⤵️',
+            reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=False, resize_keyboard=True
+            )
+        )
+    else:
+        update.message.reply_text(
+            'Напишіть назву '
+            'та кількість ⤵️',
+            reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=False, resize_keyboard=True
+            )
+        )
+
+    return states.HELP
+
+def help(update: Update, context: CallbackContext) -> int:
+    reply_keyboard = [['❌ Відміна']]
+    text = update.message.text
+    if text == '❌ Відміна':
+        send_to_start(update)
+        return states.REQUEST
+    context.user_data['help'] = text
     logger.info("Text is: %s", text)
     update.message.reply_text(
         'Напишіть ваше імʼя '
         'та прізвище ⤵️',
         reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True, resize_keyboard=True
+            reply_keyboard, one_time_keyboard=False, resize_keyboard=True
         )
     )
 
     return states.NAME
 
-
 def name(update: Update, context: CallbackContext) -> int:
-    """Stores the selected gender and asks for a photo."""
     reply_keyboard = [['❌ Відміна']]
-    print(context.chat_data)
     text = update.message.text
     if text == '❌ Відміна':
         send_to_start(update)
         return states.REQUEST
-    if sheets.validate_name(text) is None:
+    if validate_name(text) is None:
         send_again(update)
         return states.NAME
     logger.info("Text is: %s", text)
-    sheets.add_name(update.message.text)
+    context.user_data['name'] = text
     update.message.reply_text(
         'Напишіть ваш номер '
-        'телефону ⤵️',
-        reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True, resize_keyboard=True
-        )
+        'телефону ⤵️'
     )
 
     return states.PHONE
 
 def phone(update: Update, context: CallbackContext) -> int:
-    """Stores the selected gender and asks for a photo."""
     reply_keyboard = [['❌ Відміна']]
     text = update.message.text
     if text == '❌ Відміна':
         send_to_start(update)
         return states.REQUEST
-    if sheets.validate_phone(text) is None:
+    if validate_phone(text) is None:
         send_again(update)
         return states.PHONE
     logger.info("Text is: %s", text)
-    sheets.add_phone(update.message.text)
+    context.user_data['phone'] = text
     update.message.reply_text(
         'Напишіть адресу, де потрібна допомога ⤵️',
-
-        reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True, resize_keyboard=True
-        )
     )
 
     return states.ADDRESS
 
 
 def address(update: Update, context: CallbackContext) -> int:
-    """Stores the selected gender and asks for a photo."""
     text = update.message.text
     if text == '❌ Відміна':
         send_to_start(update)
         return states.REQUEST
-    if sheets.validate_address(text) is None:
+    if validate_address(text) is None:
         send_again(update)
         return states.ADDRESS
     logger.info("Text is: %s", text)
-    sheets.add_address(update.message.text)
+    context.user_data['address'] = text
+    sheets = google_sheets.Sheets(context.user_data['region'], context.user_data['table_id'])
+    sheets.add_all(context.user_data)
     update.message.reply_text(
-        """Ми записали ваше звернення.
-    Зачекайте на дзвінок, будь ласка.
-    Постараємось допомогти вам якомога скоріше 🙏""",
-
-        # reply_markup=ReplyKeyboardMarkup(
-        #     reply_keyboard, one_time_keyboard=True, resize_keyboard=True
-        # )
-
+        """Ми записали ваше звернення. Зачекайте на дзвінок, будь ласка. Постараємось допомогти вам якомога скоріше 🙏. Натисніть /start, якщо вам потрібно зробити ще один запит.""",
+        reply_markup=ReplyKeyboardRemove()
     )
     return ConversationHandler.END
+
+def validate_name(text:str):
+    return re.fullmatch("^[А-Яа-яЁёЇїІіЄєʼ ,.'-]+$", text)
+
+def validate_address(text:str):
+    return re.fullmatch("^[А-Яа-я0-9ЁёЇїІіЄєʼ ,.'-]+$", text)
+
+def validate_phone(text:str):
+    return re.fullmatch("^[0-9]+$", text)
