@@ -192,7 +192,7 @@ def validate_name(text:str):
     return re.fullmatch("^[А-Яа-яЁёЇїІіЄєʼ ,.'-]+$", text)
 
 def validate_address(text:str):
-    return re.fullmatch("^[А-Яа-я0-9ЁёЇїІіЄєʼ ,.'-]+$", text)
+    return re.fullmatch("^[А-Яа-я0-9ЁёЇїІіЄєʼ ,.'-/]+$", text)
 
 def validate_phone(text:str):
-    return re.fullmatch("^[0-9]+$", text)
+    return re.fullmatch("^[0-9+]+$", text)
