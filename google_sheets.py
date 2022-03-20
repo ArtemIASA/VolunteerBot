@@ -5,13 +5,11 @@ logger = logging.getLogger(__name__)
 
 class Sheets:
 
-    def __init__(self, region, table_id):
-        logger.info(f'Table id is: {table_id}')
-        logger.info(f'Region is: {region}')
+    def __init__(self, help_type, table_id):
+        logger.info(f'Help type is: {help_type}')
         self.gc = pygsheets.authorize(service_file='client_secret.json')
         self.sh = self.gc.open_by_key(table_id)
-        self.wks = self.sh.worksheet('title', region)
-        self.region = region
+        self.wks = self.sh.worksheet('title', help_type)
 
     def open_wks(self, region):
         self.region = region
@@ -45,8 +43,11 @@ class Sheets:
         address = self.add_newlines(address)
         self.wks.update_value(f'C{empty_row}', address)
 
+    def add_region(self, region, empty_row):
+        self.wks.update_value(f'F{empty_row}', region)
+
     def change_added_cells(self, row):
-        cols = ['B', 'D', 'E', 'C']
+        cols = ['B', 'D', 'E', 'C', 'F']
         cells = [i + str(row) for i in cols]
         for cell in cells:
             wks_cell = self.wks.cell(cell)
@@ -59,4 +60,5 @@ class Sheets:
         self.add_name(chat_data['name'], row)
         self.add_phone(chat_data['phone'], row)
         self.add_address(chat_data['address'], row)
+        self.add_region(chat_data['region'], row)
         #self.change_added_cells(row)

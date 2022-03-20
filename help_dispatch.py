@@ -15,27 +15,9 @@ from telegram.ext import (
 from dotenv import load_dotenv
 
 load_dotenv()
-OSA_MED = os.getenv('OSA_MED')
-OSA_GROCERIES = os.getenv('OSA_GROCERIES')
-OSA_ARMY = os.getenv('OSA_ARMY')
-OSA_MEALS = os.getenv('OSA_MEALS')
-OSA_OTHER = os.getenv('OSA_OTHER')
+OSA_TABLE = os.getenv('OSA_TABLE')
 logger = logging.getLogger(__name__)
-text_to_link = {
-        '🛡 Речі для захисників': OSA_ARMY,
-        '🍲 Обіди': OSA_MEALS,
-        '💊 Ліки / засоби гігієни': OSA_MED,
-        '🛒 Гуманітарна допомога (їжа, речі)': OSA_GROCERIES,
-        '📖 Інше': OSA_OTHER
-    }
 
-def get_table_id(text):
-    try:
-        table_id = text_to_link[text]
-    except KeyError as e:
-        # можно также присвоить значение по умолчанию вместо бросания исключения
-        raise ValueError('Undefined unit: {}'.format(e.args[0]))
-    return table_id
 
 def send_again(update: Update):
     update.message.reply_text(
@@ -46,6 +28,7 @@ def send_again(update: Update):
         #     reply_keyboard, one_time_keyboard=True, resize_keyboard=True
         # )
     )
+
 
 def send_to_start(update: Update):
     reply_keyboard = [['✋ Потрібна допомога']]
@@ -87,7 +70,8 @@ def help_type(update: Update, context: CallbackContext) -> int:
     if text == '❌ Відміна':
         send_to_start(update)
         return states.REQUEST
-    context.user_data['table_id'] = get_table_id(text)
+    context.user_data['table_id'] = OSA_TABLE
+    context.user_data['help_type'] = text
     logger.info("Text is: %s", text)
     if text == '📖 Інше':
         update.message.reply_text(
@@ -117,7 +101,6 @@ def help_type(update: Update, context: CallbackContext) -> int:
     return states.HELP
 
 def help(update: Update, context: CallbackContext) -> int:
-    reply_keyboard = [['❌ Відміна']]
     text = update.message.text
     if text == '❌ Відміна':
         send_to_start(update)
@@ -127,15 +110,11 @@ def help(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
         'Напишіть ваше імʼя '
         'та прізвище ⤵️',
-        reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=False, resize_keyboard=True
-        )
     )
 
     return states.NAME
 
 def name(update: Update, context: CallbackContext) -> int:
-    reply_keyboard = [['❌ Відміна']]
     text = update.message.text
     if text == '❌ Відміна':
         send_to_start(update)
@@ -153,7 +132,6 @@ def name(update: Update, context: CallbackContext) -> int:
     return states.PHONE
 
 def phone(update: Update, context: CallbackContext) -> int:
-    reply_keyboard = [['❌ Відміна']]
     text = update.message.text
     if text == '❌ Відміна':
         send_to_start(update)
@@ -180,7 +158,7 @@ def address(update: Update, context: CallbackContext) -> int:
         return states.ADDRESS
     logger.info("Text is: %s", text)
     context.user_data['address'] = text
-    sheets = google_sheets.Sheets(context.user_data['region'], context.user_data['table_id'])
+    sheets = google_sheets.Sheets(context.user_data['help_type'], context.user_data['table_id'])
     sheets.add_all(context.user_data)
     update.message.reply_text(
         """Ми записали ваше звернення. Зачекайте на дзвінок, будь ласка. Постараємось допомогти вам якомога скоріше 🙏. Натисніть /start, якщо вам потрібно зробити ще один запит.""",
