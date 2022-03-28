@@ -51,6 +51,9 @@ def region(update: Update, context: CallbackContext) -> int:
                       ]
     user = update.message.from_user
     text = update.message.text
+    if text == '/start':
+        send_to_start(update)
+        return states.REQUEST
     context.user_data['region'] = text
     logger.info("Gender of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
@@ -67,7 +70,7 @@ def region(update: Update, context: CallbackContext) -> int:
 def help_type(update: Update, context: CallbackContext) -> int:
     reply_keyboard = [['❌ Відміна']]
     text = update.message.text
-    if text == '❌ Відміна':
+    if text == '❌ Відміна' or text == '/start':
         send_to_start(update)
         return states.REQUEST
     context.user_data['table_id'] = OSA_TABLE
@@ -102,7 +105,7 @@ def help_type(update: Update, context: CallbackContext) -> int:
 
 def help(update: Update, context: CallbackContext) -> int:
     text = update.message.text
-    if text == '❌ Відміна':
+    if text == '❌ Відміна' or text == '/start':
         send_to_start(update)
         return states.REQUEST
     context.user_data['help'] = text
@@ -116,7 +119,7 @@ def help(update: Update, context: CallbackContext) -> int:
 
 def name(update: Update, context: CallbackContext) -> int:
     text = update.message.text
-    if text == '❌ Відміна':
+    if text == '❌ Відміна' or text == '/start':
         send_to_start(update)
         return states.REQUEST
     if validate_name(text) is None:
@@ -133,7 +136,7 @@ def name(update: Update, context: CallbackContext) -> int:
 
 def phone(update: Update, context: CallbackContext) -> int:
     text = update.message.text
-    if text == '❌ Відміна':
+    if text == '❌ Відміна' or text == '/start':
         send_to_start(update)
         return states.REQUEST
     if validate_phone(text) is None:
@@ -150,7 +153,7 @@ def phone(update: Update, context: CallbackContext) -> int:
 
 def address(update: Update, context: CallbackContext) -> int:
     text = update.message.text
-    if text == '❌ Відміна':
+    if text == '❌ Відміна' or text == '/start':
         send_to_start(update)
         return states.REQUEST
     if validate_address(text) is None:

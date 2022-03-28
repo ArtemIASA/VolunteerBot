@@ -29,7 +29,9 @@ logger = logging.getLogger(__name__)
 def start(update: Update, context: CallbackContext) -> int:
     """Starts the conversation and asks the user about their gender."""
     reply_keyboard = [['✋ Потрібна допомога']]
-
+    if update.message.text == '/start':
+        send_to_start(update)
+        return states.REQUEST
     update.message.reply_text(
         'Обирайте потрібне ⤵️',
         reply_markup=ReplyKeyboardMarkup(
@@ -63,9 +65,9 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            states.REQUEST: [MessageHandler(Filters.regex('^(✋ Потрібна допомога)$'), request)],
-            states.REGION: [MessageHandler(Filters.regex('^(Деснянський|Святошинський|Дніпровський|Печерський|Голосіївський|Дарницький|Соломянський|Оболонський|Шевченківський|Подільський)$'), region)],
-            states.HELP_TYPE: [MessageHandler(Filters.regex('^(🍲|🛡|💊|🛒|📖|❌)'), help_type)],
+            states.REQUEST: [MessageHandler(Filters.regex('^(✋ Потрібна допомога|/start)$'), request)],
+            states.REGION: [MessageHandler(Filters.regex('^(Деснянський|Святошинський|Дніпровський|Печерський|Голосіївський|Дарницький|Соломянський|Оболонський|Шевченківський|Подільський|/start)$'), region)],
+            states.HELP_TYPE: [MessageHandler(Filters.regex('^(🍲|🛡|💊|🛒|📖|❌|/start)'), help_type)],
             states.HELP: [MessageHandler(Filters.text, help)],
             states.NAME: [MessageHandler(Filters.text, name)],
             states.PHONE: [MessageHandler(Filters.text, phone)],

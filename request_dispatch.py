@@ -1,5 +1,6 @@
 import logging
 import states
+from help_dispatch import send_to_start
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
     Updater,
@@ -22,7 +23,11 @@ def request(update: Update, context: CallbackContext) -> int:
                        ]
 
     user = update.message.from_user
-    logger.info("Gender of %s: %s", user.first_name, update.message.text)
+    text = update.message.text
+    logger.info("Gender of %s: %s", user.first_name, text)
+    if text == '/start':
+        send_to_start(update)
+        return states.REQUEST
     update.message.reply_text(
         'Оберіть район, де '
         'потрібна допомога ⤵️',
