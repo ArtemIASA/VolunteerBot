@@ -31,7 +31,8 @@ def send_again(update: Update):
 
 
 def send_to_start(update: Update):
-    reply_keyboard = [['✋ Потрібна допомога']]
+    reply_keyboard = [['✋ Потрібна допомога'],
+                      ['💪 Хочу допомогти / 💪 I want to help']]
 
     update.message.reply_text(
         'Обирайте потрібне ⤵️',
@@ -51,7 +52,7 @@ def region(update: Update, context: CallbackContext) -> int:
                       ]
     user = update.message.from_user
     text = update.message.text
-    if text == '/start':
+    if text == '❌ Відміна' or text == '/start':
         send_to_start(update)
         return states.REQUEST
     context.user_data['region'] = text

@@ -1,7 +1,7 @@
 import logging
 import os
 import states
-from request_dispatch import request
+from request_dispatch import *
 from help_dispatch import *
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
@@ -16,6 +16,7 @@ from telegram.ext import (
 
 load_dotenv()
 token = os.getenv("TOKEN")
+# token_test = os.getenv("TOKEN_TEST")
 port = os.getenv("PORT")
 webhook_host = os.getenv("HOST_IP")
 webapp_url = f"https://{webhook_host}:{port}/"
@@ -28,7 +29,8 @@ logger = logging.getLogger(__name__)
 
 def start(update: Update, context: CallbackContext) -> int:
     """Starts the conversation and asks the user about their gender."""
-    reply_keyboard = [['✋ Потрібна допомога']]
+    reply_keyboard = [['✋ Потрібна допомога'],
+                      ['💪 Хочу допомогти / 💪 I want to help']]
     if update.message.text == '/start':
         send_to_start(update)
         return states.REQUEST
@@ -65,7 +67,9 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            states.REQUEST: [MessageHandler(Filters.regex('^(✋ Потрібна допомога|/start)$'), request)],
+            states.REQUEST: [MessageHandler(Filters.regex('^(✋|💪|/start|)'), request)],
+            states.DONATION: [MessageHandler(Filters.regex('^(💪|/start|❌|🏦)'), donate)],
+            states.ACCOUNT: [MessageHandler(Filters.regex('^(💳|💪|/start|❌)'), bank_account)],
             states.REGION: [MessageHandler(Filters.regex('^(Деснянський|Святошинський|Дніпровський|Печерський|Голосіївський|Дарницький|Соломянський|Оболонський|Шевченківський|Подільський|/start)$'), region)],
             states.HELP_TYPE: [MessageHandler(Filters.regex('^(🍲|🛡|💊|🛒|📖|❌|/start)'), help_type)],
             states.HELP: [MessageHandler(Filters.text, help)],
