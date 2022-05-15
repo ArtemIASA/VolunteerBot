@@ -17,13 +17,12 @@ logger = logging.getLogger(__name__)
 
 def request(update: Update, context: CallbackContext) -> int:
     """Stores the selected gender and asks for a photo."""
-    reply_keyboard = [['Деснянський'], ['Святошинський'],
-                       ['Дніпровський'], ['Печерський'],
-                       ['Голосіївський'], ['Дарницький'],
-                       ['Соломянський'], ['Оболонський'],
-                       ['Шевченківський'], ['Подільський'],
-                       ['❌ Відміна']
-                       ]
+    reply_keyboard = [['🛡 Речі для захисників'],
+                      ['💊 Ліки / засоби гігієни'],
+                      ['🛒 Гуманітарна допомога (їжа, речі)'],
+                      ['📖 Інше'],
+                      ['❌ Відміна']
+                      ]
     reply_keyboard_sup = [['🏦 Реквізити для фінансової підтримки / 🏦 Bank details'],
                       ['❌ Відміна / ❌ Cancel'],
                       ]
@@ -42,14 +41,14 @@ def request(update: Update, context: CallbackContext) -> int:
         )
         return states.DONATION
     update.message.reply_text(
-        'Оберіть район, де '
-        'потрібна допомога ⤵️',
+        'Оберіть яка '
+        'допомога потрібна ⤵️',
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True, resize_keyboard=True
         )
     )
 
-    return states.REGION
+    return states.HELP_TYPE
 
 
 def donate(update: Update, context: CallbackContext) -> int:

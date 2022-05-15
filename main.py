@@ -70,8 +70,7 @@ def main() -> None:
             states.REQUEST: [MessageHandler(Filters.regex('^(✋|💪|/start|)'), request)],
             states.DONATION: [MessageHandler(Filters.regex('^(💪|/start|❌|🏦)'), donate)],
             states.ACCOUNT: [MessageHandler(Filters.regex('^(💳|💪|/start|❌)'), bank_account)],
-            states.REGION: [MessageHandler(Filters.regex('^(Деснянський|Святошинський|Дніпровський|Печерський|Голосіївський|Дарницький|Соломянський|Оболонський|Шевченківський|Подільський|/start)$'), region)],
-            states.HELP_TYPE: [MessageHandler(Filters.regex('^(🍲|🛡|💊|🛒|📖|❌|/start)'), help_type)],
+            states.HELP_TYPE: [MessageHandler(Filters.regex('^(🛡|💊|🛒|📖|❌|/start)'), help_type)],
             states.HELP: [MessageHandler(Filters.text, help)],
             states.NAME: [MessageHandler(Filters.text, name)],
             states.PHONE: [MessageHandler(Filters.text, phone)],
@@ -90,7 +89,7 @@ def main() -> None:
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.idle()
+    # updater.idle()
 
 
 if __name__ == '__main__':

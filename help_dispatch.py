@@ -44,7 +44,6 @@ def send_to_start(update: Update):
 
 def region(update: Update, context: CallbackContext) -> int:
     reply_keyboard = [['🛡 Речі для захисників'],
-                      ['🍲 Обіди'],
                       ['💊 Ліки / засоби гігієни'],
                       ['🛒 Гуманітарна допомога (їжа, речі)'],
                       ['📖 Інше'],
@@ -55,7 +54,6 @@ def region(update: Update, context: CallbackContext) -> int:
     if text == '❌ Відміна' or text == '/start':
         send_to_start(update)
         return states.REQUEST
-    context.user_data['region'] = text
     logger.info("Gender of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
         'Оберіть яка '
@@ -81,14 +79,6 @@ def help_type(update: Update, context: CallbackContext) -> int:
         update.message.reply_text(
             'Опишіть докладно яка '
             'допомога потрібна ⤵️',
-            reply_markup=ReplyKeyboardMarkup(
-                reply_keyboard, one_time_keyboard=False, resize_keyboard=True
-            )
-        )
-    elif text == '🍲 Обіди':
-        update.message.reply_text(
-            'Напишіть кількість '
-            'обідів ⤵️',
             reply_markup=ReplyKeyboardMarkup(
                 reply_keyboard, one_time_keyboard=False, resize_keyboard=True
             )

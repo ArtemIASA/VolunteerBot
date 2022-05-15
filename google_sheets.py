@@ -43,9 +43,6 @@ class Sheets:
         address = self.add_newlines(address)
         self.wks.update_value(f'C{empty_row}', address)
 
-    def add_region(self, region, empty_row):
-        self.wks.update_value(f'F{empty_row}', region)
-
     def change_added_cells(self, row):
         cols = ['B', 'D', 'E', 'C', 'F']
         cells = [i + str(row) for i in cols]
@@ -60,5 +57,4 @@ class Sheets:
         self.add_name(chat_data['name'], row)
         self.add_phone(chat_data['phone'], row)
         self.add_address(chat_data['address'], row)
-        self.add_region(chat_data['region'], row)
         #self.change_added_cells(row)
